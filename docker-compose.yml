@@ -45,7 +45,7 @@ services:
     security_opt:
       - label:disable
   tabix:
-    image: spoonest/clickhouse-tabix-web-client
+    image: spoonest/clickhouse-tabix-web-client:stable
     restart: always
     ports:
       - "8080:80"
@@ -59,12 +59,12 @@ services:
     security_opt:
       - label:disable
   consul:
-    image: consul:latest
+    image: consul:1.9
     restart: always
     network_mode: host
     command: "agent -dev -ui -client 0.0.0.0"
   nacos:
-    image: nacos/nacos-server:latest
+    image: nacos/nacos-server:1.4.0
     container_name: nacos-standalone
     environment:
     - PREFER_HOST_MODE=hostname

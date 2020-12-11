@@ -79,6 +79,25 @@
         "day"
       ],
       "bufferSize": 50000
+    },
+    "test_dynamic_schema": {
+      "kafka": "kfk1",
+      "topic": "topic1",
+      "consumerGroup": "test_dynamic_schema",
+      "earliest": true,
+      "parser": "fastjson",
+      "clickhouse": "ch1",
+      "autoSchema": true,
+      "tableName": "test_dynamic_schema",
+      "excludeColumns": [
+        "day"
+      ],
+      "dynamicSchema": {
+        "enable": true,
+        "cluster": "",
+        "distTableName": ""
+      },
+      "bufferSize": 50000
     }
   }
 }

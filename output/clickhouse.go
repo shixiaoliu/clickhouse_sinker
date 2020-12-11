@@ -23,6 +23,7 @@ import (
 	"os"
 	"regexp"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/housepower/clickhouse_sinker/config"
@@ -223,4 +224,49 @@ func (c *ClickHouse) initSchema() (err error) {
 
 	log.Infof("%s: Prepare sql=> %s", c.taskCfg.Name, c.prepareSQL)
 	return nil
+}
+
+func (c *ClickHouse) ChangeSchema(newKeys *sync.Map) (err error) {
+	var sqls []string
+	var onCluster string
+	if c.taskCfg.DynamicSchema.Cluster != "" {
+		onCluster = fmt.Sprintf("ON CLUSTER %s", c.taskCfg.DynamicSchema.Cluster)
+	}
+	newKeys.Range(func(key, value interface{}) bool {
+		strKey := key.(string)
+		strVal := value.(string)
+		switch strVal {
+		case "int":
+			strVal = "Nullable(Int64)"
+		case "float":
+			strVal = "Nullable(Float64)"
+		case "string":
+			strVal = "Nullable(String)"
+		default:
+			err = errors.Errorf("%s: BUG: unsupported column type %s", c.taskCfg.Name, strVal)
+			return false
+		}
+		sql := fmt.Sprintf("ALTER TABLE %s.%s %s ADD COLUMN %s %s", c.chCfg.DB, c.taskCfg.TableName, onCluster, strKey, strVal)
+		sqls = append(sqls, sql)
+		return true
+	})
+	if err != nil {
+		return
+	}
+	if c.taskCfg.DynamicSchema.DistTableName != "" {
+		sqls = append(sqls, fmt.Sprintf("DROP TABLE %s.%s %s", c.chCfg.DB, c.taskCfg.DynamicSchema.DistTableName, onCluster))
+		sqls = append(sqls, fmt.Sprintf("CREATE TABLE %s.%s %s AS %s ENGINE = Distributed(%s, %s, %s);",
+			c.chCfg.DB, c.taskCfg.DynamicSchema.DistTableName, onCluster, c.taskCfg.TableName,
+			c.taskCfg.DynamicSchema.Cluster, c.chCfg.DB, c.taskCfg.TableName))
+	}
+
+	conn := pool.GetConn(c.taskCfg.Clickhouse, 0)
+	for _, sql := range sqls {
+		log.Infof("%s: executing sql=> %s", c.taskCfg.Name, sql)
+		if _, err = conn.Exec(sql); err != nil {
+			err = errors.Wrapf(err, sql)
+			return err
+		}
+	}
+	return
 }

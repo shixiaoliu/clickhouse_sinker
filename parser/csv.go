@@ -18,6 +18,7 @@ import (
 	"bytes"
 	"encoding/csv"
 	"strconv"
+	"sync"
 	"time"
 
 	"github.com/housepower/clickhouse_sinker/model"
@@ -133,4 +134,8 @@ func (c *CsvMetric) GetElasticDateTime(key string, nullable bool) interface{} {
 	t, _ := time.Parse(time.RFC3339, val)
 
 	return t.Unix()
+}
+
+func (c *CsvMetric) GetNewKeys(knownKeys *sync.Map, newKeys *sync.Map) bool {
+	return false
 }

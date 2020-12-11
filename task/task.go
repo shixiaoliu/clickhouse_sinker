@@ -18,12 +18,15 @@ package task
 import (
 	"context"
 	"fmt"
+	"os"
 	"runtime"
 	"strconv"
 	"strings"
 	"sync"
+	"sync/atomic"
 	"time"
 
+	"github.com/fagongzi/goetty"
 	"github.com/housepower/clickhouse_sinker/config"
 	"github.com/housepower/clickhouse_sinker/input"
 	"github.com/housepower/clickhouse_sinker/model"
@@ -41,6 +44,7 @@ import (
 type Service struct {
 	sync.Mutex
 
+	parentCtx  context.Context
 	ctx        context.Context
 	cancel     context.CancelFunc
 	started    bool
@@ -51,6 +55,11 @@ type Service struct {
 	cfg        *config.Config
 	taskCfg    *config.TaskConfig
 	dims       []*model.ColumnWithType
+
+	knownKeys  sync.Map
+	newKeys    sync.Map
+	cntNewKeys int32 // size of newKeys
+	tid        goetty.Timeout
 
 	rings     []*Ring
 	sharder   *Sharder
@@ -86,6 +95,7 @@ func (service *Service) Init() (err error) {
 	service.limiter2 = rate.NewLimiter(rate.Every(10*time.Second), 1)
 	service.limiter3 = rate.NewLimiter(rate.Every(10*time.Second), 1)
 
+	service.rings = make([]*Ring, 0)
 	if service.taskCfg.ShardingKey != "" {
 		if service.sharder, err = NewSharder(service); err != nil {
 			return
@@ -93,6 +103,17 @@ func (service *Service) Init() (err error) {
 	}
 
 	err = service.inputer.Init(service.cfg, service.taskCfg.Name, service.put)
+
+	if service.taskCfg.DynamicSchema.Enable {
+		for _, dim := range service.dims {
+			service.knownKeys.Store(dim.SourceName, nil)
+		}
+		for _, dim := range service.taskCfg.ExcludeColumns {
+			service.knownKeys.Store(dim, nil)
+		}
+		service.newKeys = sync.Map{}
+		atomic.StoreInt32(&service.cntNewKeys, 0)
+	}
 	return
 }
 
@@ -100,6 +121,7 @@ func (service *Service) Init() (err error) {
 func (service *Service) Run(ctx context.Context) {
 	var err error
 	service.started = true
+	service.parentCtx = ctx
 	service.ctx, service.cancel = context.WithCancel(ctx)
 	log.Infof("%s: task started", service.taskCfg.Name)
 	go service.inputer.Run(service.ctx)
@@ -181,7 +203,7 @@ func (service *Service) put(msg model.InputMessage) {
 			}
 			return
 		}
-		if msg.Offset >= ringGroundOff+ring.ringCap {
+		if msg.Offset >= ringGroundOff+ring.ringCap && atomic.LoadInt32(&service.cntNewKeys) == 0 {
 			statistics.RingMsgsOffTooLargeErrorTotal.WithLabelValues(service.taskCfg.Name).Inc()
 			if service.limiter3.Allow() {
 				log.Warnf("%s: got a message(topic %v, partition %d, offset %v) right to the range [%v, %v)",
@@ -207,13 +229,29 @@ func (service *Service) put(msg model.InputMessage) {
 		} else {
 			row = model.MetricToRow(metric, msg, service.dims)
 		}
-
 		service.pp.Put(p)
-		var ring *Ring
-		service.Lock()
-		ring = service.rings[msg.Partition]
-		service.Unlock()
-		ring.PutElem(model.MsgRow{Msg: &msg, Row: row})
+
+		if service.taskCfg.DynamicSchema.Enable {
+			found := metric.GetNewKeys(&service.knownKeys, &service.newKeys)
+			if found {
+				cntNewKeys := atomic.AddInt32(&service.cntNewKeys, 1)
+				if cntNewKeys == 1 {
+					// The first message which contains new keys triggers
+					// scheduling a delayed func to apply schema change.
+					if service.tid, err = util.GlobalTimerWheel.Schedule(time.Duration(service.taskCfg.FlushInterval)*time.Second, service.changeSchema, nil); err != nil {
+						log.Fatalf("got error %+v", err)
+						os.Exit(-1)
+					}
+				}
+			}
+		}
+		if atomic.LoadInt32(&service.cntNewKeys) == 0 {
+			var ring *Ring
+			service.Lock()
+			ring = service.rings[msg.Partition]
+			service.Unlock()
+			ring.PutElem(model.MsgRow{Msg: &msg, Row: row})
+		}
 		statistics.ParsingPoolBacklog.WithLabelValues(service.taskCfg.Name).Dec()
 	})
 }
@@ -226,6 +264,31 @@ func (service *Service) flush(batch *model.Batch) (err error) {
 		return batch.Commit()
 	})
 	return nil
+}
+
+func (service *Service) changeSchema(arg interface{}) {
+	var err error
+	// flush all messages
+	for _, ring := range service.rings {
+		if ring != nil {
+			ring.ForceBatchOrShard(nil)
+		}
+	}
+	if service.sharder != nil {
+		service.sharder.ForceFlush(nil)
+	}
+	// change schema
+	if err = service.clickhouse.ChangeSchema(&service.newKeys); err != nil {
+		log.Fatalf("%s: clickhouse.ChangeSchema failed with error: %+v", service.taskCfg.Name, err)
+		os.Exit(-1)
+	}
+	// restart myself
+	service.Stop()
+	if err = service.Init(); err != nil {
+		log.Fatalf("%s: init failed with error: %+v", service.taskCfg.Name, err)
+		os.Exit(-1)
+	}
+	go service.Run(service.parentCtx)
 }
 
 // NotifyStop notify task to stop, This is non-blocking.
@@ -254,6 +317,7 @@ func (service *Service) Stop() {
 			ring.tid.Stop()
 		}
 	}
+	service.tid.Stop()
 	log.Infof("%s: stopped internal timers", service.taskCfg.Name)
 
 	if service.started {

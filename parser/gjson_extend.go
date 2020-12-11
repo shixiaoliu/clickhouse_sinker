@@ -17,6 +17,7 @@ package parser
 
 import (
 	"fmt"
+	"sync"
 	"time"
 
 	"github.com/tidwall/gjson"
@@ -239,4 +240,8 @@ func (c *GjsonExtendMetric) GetElasticDateTime(key string, nullable bool) interf
 	}
 	t, _ := time.Parse(time.RFC3339, val.(string))
 	return t.Unix()
+}
+
+func (c *GjsonExtendMetric) GetNewKeys(knownKeys *sync.Map, newKeys *sync.Map) bool {
+	return false
 }

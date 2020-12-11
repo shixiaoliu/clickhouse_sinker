@@ -147,6 +147,13 @@ type TaskConfig struct {
 		SourceName string
 	} `json:"dims"`
 
+	// DynamicSchema will add columns present in message to clickhouse
+	DynamicSchema struct {
+		Enable        bool // requires AutoSchema be true
+		Cluster       string
+		DistTableName string
+	}
+
 	// ShardingKey is the column name to which sharding against
 	ShardingKey string `json:"shardingKey,omitempty"`
 	// ShardingPolicy is `stripe,<interval>`(requires ShardingKey be numerical) or `hash`(requires ShardingKey be string)
