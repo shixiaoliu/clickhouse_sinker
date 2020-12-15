@@ -246,8 +246,16 @@ func (service *Service) put(msg model.InputMessage) {
 			if found {
 				cntNewKeys := atomic.AddInt32(&service.cntNewKeys, 1)
 				if cntNewKeys == 1 {
-					// The first message which contains new keys triggers
-					// scheduling a delayed func to apply schema change.
+					// The first message which contains new keys triggers flushing
+					// all messages and scheduling a delayed func to apply schema change.
+					for _, ring := range service.rings {
+						if ring != nil {
+							ring.ForceBatchOrShard(nil)
+						}
+					}
+					if service.sharder != nil {
+						service.sharder.ForceFlush(nil)
+					}
 					if service.tid, err = util.GlobalTimerWheel.Schedule(time.Duration(service.taskCfg.FlushInterval)*time.Second, service.changeSchema, nil); err != nil {
 						log.Fatalf("got error %+v", err)
 						os.Exit(-1)
@@ -270,23 +278,12 @@ func (service *Service) flush(batch *model.Batch) (err error) {
 	if (len(*batch.Rows)) == 0 {
 		return batch.Commit()
 	}
-	service.clickhouse.Send(batch, func(batch *model.Batch) error {
-		return batch.Commit()
-	})
+	service.clickhouse.Send(batch)
 	return nil
 }
 
 func (service *Service) changeSchema(arg interface{}) {
 	var err error
-	// flush all messages
-	for _, ring := range service.rings {
-		if ring != nil {
-			ring.ForceBatchOrShard(nil)
-		}
-	}
-	if service.sharder != nil {
-		service.sharder.ForceFlush(nil)
-	}
 	// change schema
 	if err = service.clickhouse.ChangeSchema(&service.newKeys); err != nil {
 		log.Fatalf("%s: clickhouse.ChangeSchema failed with error: %+v", service.taskCfg.Name, err)

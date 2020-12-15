@@ -16,6 +16,7 @@ limitations under the License.
 package main
 
 import (
+	"encoding/json"
 	"flag"
 	"fmt"
 	"os"
@@ -28,7 +29,7 @@ import (
 	_ "github.com/ClickHouse/clickhouse-go"
 	"github.com/housepower/clickhouse_sinker/config"
 	"github.com/housepower/clickhouse_sinker/util"
-	"github.com/k0kubun/pp"
+	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -102,7 +103,12 @@ func PublishSinkerConfig() {
 		}
 	}
 	cfg.AssignTasks(insts)
-	_, _ = pp.Println("going to publish following config: ", cfg)
+	var bsNewCfg []byte
+	if bsNewCfg, err = json.Marshal(cfg); err != nil {
+		err = errors.Wrapf(err, "")
+		return
+	}
+	log.Infof("going to publish following config: %+v", string(bsNewCfg))
 
 	ncm := config.NacosConfManager{}
 	properties := getProperties()

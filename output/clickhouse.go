@@ -20,6 +20,7 @@ import (
 	"database/sql"
 	std_errors "errors"
 	"fmt"
+	"io"
 	"math"
 	"os"
 	"regexp"
@@ -72,10 +73,10 @@ func (c *ClickHouse) Init() (err error) {
 }
 
 // Send a batch to clickhouse
-func (c *ClickHouse) Send(batch *model.Batch, callback func(batch *model.Batch) error) {
+func (c *ClickHouse) Send(batch *model.Batch) {
 	statistics.WritingPoolBacklog.WithLabelValues(c.taskCfg.Name).Inc()
 	_ = util.GlobalWritingPool.Submit(func() {
-		c.loopWrite(batch, callback)
+		c.loopWrite(batch)
 		statistics.WritingPoolBacklog.WithLabelValues(c.taskCfg.Name).Dec()
 	})
 }
@@ -129,32 +130,26 @@ func shouldReconnect(err error) bool {
 	if strings.Contains(err.Error(), "connection refused") || strings.Contains(err.Error(), "bad connection") {
 		return true
 	}
-	log.Infof("permanent error: %v", err.Error())
 	return false
 }
 
 // LoopWrite will dead loop to write the records
-func (c *ClickHouse) loopWrite(batch *model.Batch, callback func(batch *model.Batch) error) {
+func (c *ClickHouse) loopWrite(batch *model.Batch) {
 	var err error
 	var times int
 	for {
 		if err = c.write(batch); err == nil {
-			for {
-				if err = callback(batch); err == nil {
-					return
-				}
-				if std_errors.Is(err, context.Canceled) {
-					log.Infof("%s: ClickHouse.loopWrite quit due to the context has been cancelled", c.taskCfg.Name)
-					return
-				}
-				log.Errorf("%s: committing offset(try #%d) failed with error %+v", c.taskCfg.Name, times, err)
-				times++
-				if c.chCfg.RetryTimes <= 0 || times < c.chCfg.RetryTimes {
-					time.Sleep(10 * time.Second)
-				} else {
-					os.Exit(-1)
-				}
+			if err = batch.Commit(); err == nil {
+				return
 			}
+			// TODO: kafka_go and sarama commit give different error when context is cancceled.
+			// How to unify them?
+			if std_errors.Is(err, context.Canceled) || std_errors.Is(err, io.ErrClosedPipe) {
+				log.Infof("%s: ClickHouse.loopWrite quit due to the context has been cancelled", c.taskCfg.Name)
+				return
+			}
+			log.Errorf("%s: committing offset failed with permanent error %+v", c.taskCfg.Name, err)
+			os.Exit(-1)
 		}
 		if std_errors.Is(err, context.Canceled) {
 			log.Infof("%s: ClickHouse.loopWrite quit due to the context has been cancelled", c.taskCfg.Name)
