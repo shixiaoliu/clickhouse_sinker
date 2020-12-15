@@ -152,6 +152,7 @@ type TaskConfig struct {
 		Enable        bool // requires AutoSchema be true
 		Cluster       string
 		DistTableName string
+		MaxDims       int // the upper limit of columns number, <=0 means math.MaxInt16. protecting dirty data attack
 	}
 
 	// ShardingKey is the column name to which sharding against

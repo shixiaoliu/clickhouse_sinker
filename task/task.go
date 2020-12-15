@@ -18,6 +18,7 @@ package task
 import (
 	"context"
 	"fmt"
+	"math"
 	"os"
 	"runtime"
 	"strconv"
@@ -105,14 +106,23 @@ func (service *Service) Init() (err error) {
 	err = service.inputer.Init(service.cfg, service.taskCfg.Name, service.put)
 
 	if service.taskCfg.DynamicSchema.Enable {
-		for _, dim := range service.dims {
-			service.knownKeys.Store(dim.SourceName, nil)
+		maxDims := math.MaxInt16
+		if service.taskCfg.DynamicSchema.MaxDims > 0 {
+			maxDims = service.taskCfg.DynamicSchema.MaxDims
 		}
-		for _, dim := range service.taskCfg.ExcludeColumns {
-			service.knownKeys.Store(dim, nil)
+		if maxDims <= len(service.dims) {
+			service.taskCfg.DynamicSchema.Enable = false
+			log.Warnf("%s: disabled DynamicSchema since the number of columns reaches upper limit %d", service.taskCfg.Name, maxDims)
+		} else {
+			for _, dim := range service.dims {
+				service.knownKeys.Store(dim.SourceName, nil)
+			}
+			for _, dim := range service.taskCfg.ExcludeColumns {
+				service.knownKeys.Store(dim, nil)
+			}
+			service.newKeys = sync.Map{}
+			atomic.StoreInt32(&service.cntNewKeys, 0)
 		}
-		service.newKeys = sync.Map{}
-		atomic.StoreInt32(&service.cntNewKeys, 0)
 	}
 	return
 }

@@ -20,6 +20,7 @@ import (
 	"database/sql"
 	std_errors "errors"
 	"fmt"
+	"math"
 	"os"
 	"regexp"
 	"strings"
@@ -232,7 +233,22 @@ func (c *ClickHouse) ChangeSchema(newKeys *sync.Map) (err error) {
 	if c.taskCfg.DynamicSchema.Cluster != "" {
 		onCluster = fmt.Sprintf("ON CLUSTER %s", c.taskCfg.DynamicSchema.Cluster)
 	}
+	maxDims := math.MaxInt16
+	if c.taskCfg.DynamicSchema.MaxDims > 0 {
+		maxDims = c.taskCfg.DynamicSchema.MaxDims
+	}
+	newKeysQuota := maxDims - len(c.Dims)
+	if newKeysQuota <= 0 {
+		log.Warnf("number of columns reaches upper limit %d", maxDims)
+		return
+	}
+	var i int
 	newKeys.Range(func(key, value interface{}) bool {
+		i++
+		if i > newKeysQuota {
+			log.Warnf("number of columns reaches upper limit %d", maxDims)
+			return false
+		}
 		strKey := key.(string)
 		strVal := value.(string)
 		switch strVal {
@@ -246,7 +262,7 @@ func (c *ClickHouse) ChangeSchema(newKeys *sync.Map) (err error) {
 			err = errors.Errorf("%s: BUG: unsupported column type %s", c.taskCfg.Name, strVal)
 			return false
 		}
-		sql := fmt.Sprintf("ALTER TABLE %s.%s %s ADD COLUMN %s %s", c.chCfg.DB, c.taskCfg.TableName, onCluster, strKey, strVal)
+		sql := fmt.Sprintf("ALTER TABLE %s.%s %s ADD COLUMN IF NOT EXISTS %s %s", c.chCfg.DB, c.taskCfg.TableName, onCluster, strKey, strVal)
 		sqls = append(sqls, sql)
 		return true
 	})
@@ -254,7 +270,7 @@ func (c *ClickHouse) ChangeSchema(newKeys *sync.Map) (err error) {
 		return
 	}
 	if c.taskCfg.DynamicSchema.DistTableName != "" {
-		sqls = append(sqls, fmt.Sprintf("DROP TABLE %s.%s %s", c.chCfg.DB, c.taskCfg.DynamicSchema.DistTableName, onCluster))
+		sqls = append(sqls, fmt.Sprintf("DROP TABLE IF EXISTS %s.%s %s", c.chCfg.DB, c.taskCfg.DynamicSchema.DistTableName, onCluster))
 		sqls = append(sqls, fmt.Sprintf("CREATE TABLE %s.%s %s AS %s ENGINE = Distributed(%s, %s, %s);",
 			c.chCfg.DB, c.taskCfg.DynamicSchema.DistTableName, onCluster, c.taskCfg.TableName,
 			c.taskCfg.DynamicSchema.Cluster, c.chCfg.DB, c.taskCfg.TableName))
