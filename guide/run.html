@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en-US">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Run | clickhouse_sinker</title>
+    <meta name="generator" content="VuePress 1.7.1">
+    
+    <meta name="description" content="clickhouse_sinker a tool to sink the data into ClickHouse">
+    
+    <link rel="preload" href="/clickhouse_sinker/assets/css/0.styles.b6b8b40f.css" as="style"><link rel="preload" href="/clickhouse_sinker/assets/js/app.b4dffbc3.js" as="script"><link rel="preload" href="/clickhouse_sinker/assets/js/3.133b48d1.js" as="script"><link rel="preload" href="/clickhouse_sinker/assets/js/18.435ff185.js" as="script"><link rel="prefetch" href="/clickhouse_sinker/assets/js/10.0196721a.js"><link rel="prefetch" href="/clickhouse_sinker/assets/js/11.d935413b.js"><link rel="prefetch" href="/clickhouse_sinker/assets/js/12.41ca2c66.js"><link rel="prefetch" href="/clickhouse_sinker/assets/js/13.26b83bf9.js"><link rel="prefetch" href="/clickhouse_sinker/assets/js/14.b8380f5f.js"><link rel="prefetch" href="/clickhouse_sinker/assets/js/15.93e44e94.js"><link rel="prefetch" href="/clickhouse_sinker/assets/js/16.9ce653d9.js"><link rel="prefetch" href="/clickhouse_sinker/assets/js/17.e5979b4a.js"><link rel="prefetch" href="/clickhouse_sinker/assets/js/19.d75221be.js"><link rel="prefetch" href="/clickhouse_sinker/assets/js/4.dba3fbed.js"><link rel="prefetch" href="/clickhouse_sinker/assets/js/5.2fd5f6d7.js"><link rel="prefetch" href="/clickhouse_sinker/assets/js/6.777aa5db.js"><link rel="prefetch" href="/clickhouse_sinker/assets/js/7.1555d465.js"><link rel="prefetch" href="/clickhouse_sinker/assets/js/8.4197f438.js"><link rel="prefetch" href="/clickhouse_sinker/assets/js/9.66193bba.js"><link rel="prefetch" href="/clickhouse_sinker/assets/js/vendors~docsearch.e5d89337.js">
+    <link rel="stylesheet" href="/clickhouse_sinker/assets/css/0.styles.b6b8b40f.css">
+  </head>
+  <body>
+    <div id="app" data-server-rendered="true"><div class="theme-container"><header class="navbar"><div class="sidebar-button"><svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" role="img" viewBox="0 0 448 512" class="icon"><path fill="currentColor" d="M436 124H12c-6.627 0-12-5.373-12-12V80c0-6.627 5.373-12 12-12h424c6.627 0 12 5.373 12 12v32c0 6.627-5.373 12-12 12zm0 160H12c-6.627 0-12-5.373-12-12v-32c0-6.627 5.373-12 12-12h424c6.627 0 12 5.373 12 12v32c0 6.627-5.373 12-12 12zm0 160H12c-6.627 0-12-5.373-12-12v-32c0-6.627 5.373-12 12-12h424c6.627 0 12 5.373 12 12v32c0 6.627-5.373 12-12 12z"></path></svg></div> <a href="/clickhouse_sinker/" class="home-link router-link-active"><!----> <span class="site-name">clickhouse_sinker</span></a> <div class="links"><div class="search-box"><input aria-label="Search" autocomplete="off" spellcheck="false" value=""> <!----></div> <nav class="nav-links can-hide"><div class="nav-item"><a href="/clickhouse_sinker/guide/install.html" class="nav-link">
+  Get Started
+</a></div><div class="nav-item"><a href="/clickhouse_sinker/dev/introduction.html" class="nav-link">
+  Introduction
+</a></div><div class="nav-item"><a href="/clickhouse_sinker/configuration/flag.html" class="nav-link">
+  Configuration
+</a></div><div class="nav-item"><a href="https://github.com/housepower/clickhouse_sinker" target="_blank" rel="noopener noreferrer" class="nav-link external">
+  GitHub
+  <span><svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg> <span class="sr-only">(opens new window)</span></span></a></div><div class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="Languages" class="dropdown-title"><span class="title">Languages</span> <span class="arrow down"></span></button> <button type="button" aria-label="Languages" class="mobile-dropdown-title"><span class="title">Languages</span> <span class="arrow right"></span></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><!----> <a href="/clickhouse_sinker/guide/run.html" aria-current="page" class="nav-link router-link-exact-active router-link-active">
+  English
+</a></li><li class="dropdown-item"><!----> <a href="/clickhouse_sinker/zh/" class="nav-link">
+  zh-CN
+</a></li></ul></div></div> <!----></nav></div></header> <div class="sidebar-mask"></div> <aside class="sidebar"><nav class="nav-links"><div class="nav-item"><a href="/clickhouse_sinker/guide/install.html" class="nav-link">
+  Get Started
+</a></div><div class="nav-item"><a href="/clickhouse_sinker/dev/introduction.html" class="nav-link">
+  Introduction
+</a></div><div class="nav-item"><a href="/clickhouse_sinker/configuration/flag.html" class="nav-link">
+  Configuration
+</a></div><div class="nav-item"><a href="https://github.com/housepower/clickhouse_sinker" target="_blank" rel="noopener noreferrer" class="nav-link external">
+  GitHub
+  <span><svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg> <span class="sr-only">(opens new window)</span></span></a></div><div class="nav-item"><div class="dropdown-wrapper"><button type="button" aria-label="Languages" class="dropdown-title"><span class="title">Languages</span> <span class="arrow down"></span></button> <button type="button" aria-label="Languages" class="mobile-dropdown-title"><span class="title">Languages</span> <span class="arrow right"></span></button> <ul class="nav-dropdown" style="display:none;"><li class="dropdown-item"><!----> <a href="/clickhouse_sinker/guide/run.html" aria-current="page" class="nav-link router-link-exact-active router-link-active">
+  English
+</a></li><li class="dropdown-item"><!----> <a href="/clickhouse_sinker/zh/" class="nav-link">
+  zh-CN
+</a></li></ul></div></div> <!----></nav>  <ul class="sidebar-links"><li><section class="sidebar-group collapsable depth-0"><p class="sidebar-heading open"><span>Install and Run</span> <span class="arrow down"></span></p> <ul class="sidebar-links sidebar-group-items"><li><a href="/clickhouse_sinker/guide/install.html" class="sidebar-link">Install</a></li><li><a href="/clickhouse_sinker/guide/run.html" aria-current="page" class="active sidebar-link">Run</a><ul class="sidebar-sub-headers"><li class="sidebar-sub-header"><a href="/clickhouse_sinker/guide/run.html#requirements" class="sidebar-link">Requirements</a></li><li class="sidebar-sub-header"><a href="/clickhouse_sinker/guide/run.html#configs" class="sidebar-link">Configs</a></li><li class="sidebar-sub-header"><a href="/clickhouse_sinker/guide/run.html#example" class="sidebar-link">Example</a></li></ul></li></ul></section></li></ul> </aside> <main class="page"> <div class="theme-default-content content__default"><h1 id="run"><a href="#run" class="header-anchor">#</a> Run</h1> <h2 id="requirements"><a href="#requirements" class="header-anchor">#</a> Requirements</h2> <p>Note: we shall enable we have <code>clickhouse-server</code> and <code>kafka</code> envs, before running clickhouse_sinker.</p> <h2 id="configs"><a href="#configs" class="header-anchor">#</a> Configs</h2> <blockquote><p>There are two ways to pass the local config, multiple files and single file.</p></blockquote> <ul><li><p>For multiple files:</p> <p><code>./clickhouse_sinker --local-cfg-dir conf</code></p> <p><code>conf</code> is the configuration directorys, and it'll read <code>conf/config.json</code> as main config and all tasks files in <code>conf/tasks/*.json</code> as task configs</p></li> <li><p>For single file:</p> <p><code>./clickhouse_sinker --local-cfg-file config_single.json</code>.</p></li></ul> <blockquote><p>Read more detail descriptions of config in <a href="/clickhouse_sinker/guide/docs/config.html">here</a></p></blockquote> <h2 id="example"><a href="#example" class="header-anchor">#</a> Example</h2> <ul><li><p>Let's use single file to test <code>clickhouse_sinker</code></p> <ul><li><p>let's touch config.json
+<code>touch config.json</code></p></li> <li><p>put sample config into the config file</p></li></ul> <div class="language- extra-class"><pre class="language-text"><code>{
+  &quot;clickhouse&quot;: {
+    &quot;default&quot;: {
+      &quot;db&quot;: &quot;default&quot;,
+      &quot;hosts&quot;: [
+        [
+          &quot;127.0.0.1&quot;
+        ]
+      ],
+      &quot;port&quot;: 9000
+    }
+  },
+  &quot;kafka&quot;: {
+    &quot;default&quot;: {
+      &quot;brokers&quot;: &quot;127.0.0.1:9092&quot;,
+      &quot;version&quot;: &quot;2.2.1&quot;
+    }
+  },
+  &quot;common&quot;: {
+    &quot;bufferSize&quot;: 90000,
+    &quot;minBufferSize&quot;: 1,
+    &quot;msgSizeHint&quot;: 1000,
+    &quot;flushInterval&quot;: 5,
+    &quot;logLevel&quot;: &quot;debug&quot;
+  },
+  &quot;tasks&quot;: {
+      &quot;logstash&quot;: {
+            &quot;name&quot; : &quot;logstash&quot;,
+            &quot;kafkaClient&quot;: &quot;kafka-go&quot;,
+            &quot;kafka&quot;: &quot;default&quot;,
+            &quot;topic&quot;: &quot;logstash&quot;,
+            &quot;consumerGroup&quot; : &quot;logstash_sinker&quot;,
+            &quot;parser&quot; : &quot;json&quot;,
+            &quot;clickhouse&quot; : &quot;default&quot;,
+            &quot;tableName&quot; : &quot;logstash&quot;,
+
+            &quot;autoSchema&quot; : true,
+            &quot;@desc_of_exclude_columns&quot; : &quot;this columns will be excluded by insert SQL &quot;,
+            &quot;excludeColumns&quot; : [&quot;day&quot;]
+      }
+  }
+}
+</code></pre></div></li> <li><p>Create a simple table in Clickhouse</p> <blockquote><p>It's not the duty for clickhouse_sinker to auto create table, so we should maually do that.</p></blockquote> <div class="language- extra-class"><pre class="language-text"><code>CREATE TABLE logstash
+(
+    `time` DateTime,
+    `day` Date DEFAULT toDate(time),
+    `request_uri` String,
+    `age` UInt8
+)
+ENGINE = Memory
+
+Ok.
+
+0 rows in set. Elapsed: 0.014 sec.
+
+</code></pre></div></li> <li><p>Enable topic is created in kafka</p> <blockquote><p>I use <a href="https://github.com/birdayz/kaf" target="_blank" rel="noopener noreferrer">kaf<span><svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg> <span class="sr-only">(opens new window)</span></span></a> tool to create topics.</p></blockquote> <div class="language- extra-class"><pre class="language-text"><code>kaf topic create logstash -p 1 -r 1
+✅ Created topic!
+      Topic Name:            logstash
+      Partitions:            1
+      Replication Factor:    1
+      Cleanup Policy:        delete
+</code></pre></div></li> <li><p>Run clickhouse_sinker</p> <div class="language- extra-class"><pre class="language-text"><code>./clickhouse_sinker --local-cfg-file config.json
+</code></pre></div></li> <li><p>Send messages to the topic</p> <div class="language- extra-class"><pre class="language-text"><code>echo '{&quot;time&quot; : &quot;2020-12-18T03:38:39.000Z&quot;, &quot;age&quot; : 33 }' | kaf -b '127.0.0.1:9092' produce logstash
+echo '{&quot;time&quot; : &quot;2020-12-18T03:38:39.000Z&quot;, &quot;age&quot; : 33 }' | kaf -b '127.0.0.1:9092' produce logstash
+echo '{&quot;time&quot; : &quot;2020-12-18T03:38:39.000Z&quot;, &quot;age&quot; : 33 }' | kaf -b '127.0.0.1:9092' produce logstash
+</code></pre></div><ul><li>Check the data in clickhouse</li></ul> <div class="language- extra-class"><pre class="language-text"><code>SELECT *
+FROM logstash
+
+┌────────────────time─┬────────day─┬─request_uri─┬─age─┐
+│ 2020-12-18 11:38:39 │ 2020-12-18 │             │  33 │
+│ 2020-12-18 11:38:39 │ 2020-12-18 │             │  33 │
+│ 2020-12-18 11:38:39 │ 2020-12-18 │             │  33 │
+└─────────────────────┴────────────┴─────────────┴─────┘
+
+3 rows in set. Elapsed: 0.016 sec.
+
+</code></pre></div></li></ul></div> <footer class="page-edit"><!----> <!----></footer> <div class="page-nav"><p class="inner"><span class="prev">
+      ←
+      <a href="/clickhouse_sinker/guide/install.html" class="prev">
+        Install
+      </a></span> <!----></p></div> </main></div><div class="global-ui"></div></div>
+    <script src="/clickhouse_sinker/assets/js/app.b4dffbc3.js" defer></script><script src="/clickhouse_sinker/assets/js/3.133b48d1.js" defer></script><script src="/clickhouse_sinker/assets/js/18.435ff185.js" defer></script>
+  </body>
+</html>
